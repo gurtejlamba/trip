@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lamba Family Trip</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #da2020 0%, #c0392b 40%, #8B0000 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    .header .flag { font-size: 2.2rem; }
+    .header h1 { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; margin-top: 6px; }
+    .header p  { font-size: 0.78rem; color: #999; margin-top: 3px; }
+
+    /* Rate badge */
+    .rate-badge {
+      background: #f0f9f0;
+      border: 1px solid #b2dfdb;
+      border-radius: 10px;
+      padding: 9px 14px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+    }
+    .rate-badge .label  { color: #555; }
+    .rate-badge .rate-val { font-weight: 700; color: #2e7d32; }
+    .rate-badge .updated { font-size: 0.7rem; color: #999; }
+    .rate-badge.loading .rate-val { color: #aaa; }
+    .rate-badge.error { background: #fff3f3; border-color: #ffcdd2; }
+    .rate-badge.error .rate-val { color: #c62828; }
+
+    /* Direction toggle */
+    .toggle-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .toggle-btn {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      background: #f7f7f7;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #888;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .toggle-btn.active {
+      background: #da2020;
+      border-color: #da2020;
+      color: #fff;
+    }
+
+    /* Section label */
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    /* Currency select section */
+    .section-box {
+      background: #f7f7f7;
+      border: 2px solid #e8e8e8;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .section-box:focus-within {
+      border-color: #da2020;
+    }
+
+    select {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 2px center;
+      padding-right: 20px;
+    }
+
+    /* Amount input section */
+    .amount-section {
+      background: #f7f7f7;
+      border: 2px solid #e8e8e8;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .amount-section:focus-within { border-color: #da2020; }
+
+    .currency-pill {
+      background: #da2020;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.82rem;
+      border-radius: 8px;
+      padding: 6px 11px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      outline: none;
+      width: 0;
+      min-width: 0;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    /* Arrow divider */
+    .arrow-divider {
+      text-align: center;
+      color: #ccc;
+      font-size: 1.1rem;
+      margin: 4px 0 12px;
+      letter-spacing: 2px;
+    }
+
+    /* Result box */
+    .result-box {
+      background: linear-gradient(135deg, #da2020, #8B0000);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 14px;
+      color: #fff;
+    }
+    .result-box .result-label    { font-size: 0.72rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+    .result-box .result-amount   { font-size: 2.2rem; font-weight: 800; margin: 8px 0 3px; line-height: 1.1; }
+    .result-box .result-currency { font-size: 0.82rem; opacity: 0.85; }
+
+    /* Breakdown */
+    .breakdown {
+      font-size: 0.78rem;
+      color: #999;
+      text-align: center;
+      line-height: 1.9;
+      margin-bottom: 14px;
+    }
+    .breakdown span { color: #333; font-weight: 600; }
+
+    /* Refresh button */
+    .refresh-btn {
+      width: 100%;
+      background: #f5f5f5;
+      border: none;
+      border-radius: 10px;
+      padding: 11px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #555;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .refresh-btn:hover  { background: #ebebeb; }
+    .refresh-btn:active { background: #ddd; }
+
+    .footer {
+      text-align: center;
+      font-size: 0.68rem;
+      color: #ccc;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 360px) {
+      .card { padding: 22px 16px; }
+      input[type="number"] { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="header">
+    <div class="flag">🇻🇳</div>
+    <h1>Lamba Family Trip</h1>
+    <p>Live rates · 2.5% travel buffer included</p>
+  </div>
+
+  <div class="rate-badge loading" id="rateBadge">
+    <div>
+      <div class="label">Live Rate (1 <span id="badgeSrc">—</span>)</div>
+      <div class="rate-val" id="badgeRate">Fetching…</div>
+    </div>
+    <div class="updated" id="badgeTime"></div>
+  </div>
+
+  <div class="toggle-row">
+    <button class="toggle-btn active" id="btnToVND" onclick="setDirection('toVND')">→ VND</button>
+    <button class="toggle-btn" id="btnFromVND" onclick="setDirection('fromVND')">VND →</button>
+  </div>
+
+  <!-- Currency selector -->
+  <div class="section-label" id="currencyLabel">Select your currency</div>
+  <div class="section-box">
+    <select id="fromCurrency">
+      <option value="INR" selected>INR – Indian Rupee</option>
+      <option value="USD">USD – US Dollar</option>
+      <option value="EUR">EUR – Euro</option>
+      <option value="GBP">GBP – British Pound</option>
+      <option value="AUD">AUD – Australian Dollar</option>
+      <option value="SGD">SGD – Singapore Dollar</option>
+      <option value="THB">THB – Thai Baht</option>
+      <option value="JPY">JPY – Japanese Yen</option>
+      <option value="KRW">KRW – Korean Won</option>
+      <option value="CAD">CAD – Canadian Dollar</option>
+    </select>
+  </div>
+
+  <!-- Amount input -->
+  <div class="section-label" id="amountLabel">Enter amount</div>
+  <div class="amount-section">
+    <div class="currency-pill" id="currencyPill">INR</div>
+    <input type="number" id="amountInput" value="100" min="0" step="any" placeholder="0" />
+  </div>
+
+  <div class="arrow-divider" id="arrowDivider">▼</div>
+
+  <!-- Result -->
+  <div class="result-box">
+    <div class="result-label" id="resultLabel">You will receive (approx.)</div>
+    <div class="result-amount" id="resultAmount">—</div>
+    <div class="result-currency" id="resultCurrency">Vietnamese Dong (VND)</div>
+  </div>
+
+  <div class="breakdown" id="breakdown"></div>
+
+  <button class="refresh-btn" onclick="fetchRate()">↻ Refresh Live Rate</button>
+
+  <div class="footer">Rates from fawazahmed0/currency-api · Updated daily · For reference only.</div>
+</div>
+
+<script>
+  const BUFFER = 0.025;
+  let liveRate  = null;
+  let direction = 'toVND';
+
+  const amountInput    = document.getElementById('amountInput');
+  const fromCurrency   = document.getElementById('fromCurrency');
+  const currencyPill   = document.getElementById('currencyPill');
+  const resultAmount   = document.getElementById('resultAmount');
+  const resultLabel    = document.getElementById('resultLabel');
+  const resultCurrency = document.getElementById('resultCurrency');
+  const breakdown      = document.getElementById('breakdown');
+  const rateBadge      = document.getElementById('rateBadge');
+  const badgeRate      = document.getElementById('badgeRate');
+  const badgeSrc       = document.getElementById('badgeSrc');
+  const badgeTime      = document.getElementById('badgeTime');
+  const currencyLabel  = document.getElementById('currencyLabel');
+  const amountLabel    = document.getElementById('amountLabel');
+  const arrowDivider   = document.getElementById('arrowDivider');
+
+  function formatVND(n) {
+    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(Math.round(n));
+  }
+
+  function formatForeign(n, decimals) {
+    return new Intl.NumberFormat('en-IN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(n);
+  }
+
+  function setDirection(dir) {
+    direction = dir;
+    const cur = fromCurrency.value;
+    document.getElementById('btnToVND').classList.toggle('active', dir === 'toVND');
+    document.getElementById('btnFromVND').classList.toggle('active', dir === 'fromVND');
+
+    if (dir === 'toVND') {
+      currencyLabel.textContent    = 'Select your currency';
+      amountLabel.textContent      = 'Enter amount';
+      currencyPill.textContent     = cur;
+      resultLabel.textContent      = 'You will receive (approx.)';
+      resultCurrency.textContent   = 'Vietnamese Dong (VND)';
+      arrowDivider.textContent     = '▼';
+    } else {
+      currencyLabel.textContent    = 'Select target currency';
+      amountLabel.textContent      = 'Enter amount in VND';
+      currencyPill.textContent     = '₫';
+      resultLabel.textContent      = 'You will receive (approx.)';
+      resultCurrency.textContent   = cur;
+      arrowDivider.textContent     = '▼';
+    }
+    convert();
+  }
+
+  function convert() {
+    const amount = parseFloat(amountInput.value);
+    if (!liveRate || isNaN(amount) || amount <= 0) {
+      resultAmount.textContent = '—';
+      breakdown.textContent    = '';
+      return;
+    }
+
+    const cur = fromCurrency.value;
+
+    if (direction === 'toVND') {
+      const raw      = amount * liveRate;
+      const buffered = raw * (1 - BUFFER);
+      const deducted = raw - buffered;
+      resultAmount.textContent = '₫ ' + formatVND(buffered);
+      breakdown.innerHTML =
+        `Raw at market rate: <span>₫ ${formatVND(raw)}</span><br>` +
+        `2.5% buffer deducted: <span>− ₫ ${formatVND(deducted)}</span><br>` +
+        `Effective rate: <span>1 ${cur} = ₫ ${formatVND(liveRate * (1 - BUFFER))}</span>`;
+    } else {
+      const raw      = amount / liveRate;
+      const buffered = raw * (1 - BUFFER);
+      const deducted = raw - buffered;
+      const decimals = ['JPY','KRW'].includes(cur) ? 0 : 2;
+      resultAmount.textContent = cur + ' ' + formatForeign(buffered, decimals);
+      breakdown.innerHTML =
+        `Raw at market rate: <span>${cur} ${formatForeign(raw, decimals)}</span><br>` +
+        `2.5% buffer deducted: <span>− ${cur} ${formatForeign(deducted, decimals)}</span><br>` +
+        `Effective rate: <span>₫ 1000 = ${cur} ${formatForeign(1000 / liveRate * (1 - BUFFER), 4)}</span>`;
+    }
+  }
+
+  async function fetchRate() {
+    const src = fromCurrency.value;
+    badgeSrc.textContent     = src;
+    badgeRate.textContent    = 'Fetching…';
+    rateBadge.className      = 'rate-badge loading';
+    liveRate                 = null;
+    resultAmount.textContent = '—';
+    breakdown.textContent    = '';
+    setDirection(direction);
+
+    async function tryFetch(baseUrl) {
+      const sl  = src.toLowerCase();
+      const res = await fetch(`${baseUrl}/${sl}.json`);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const rate = data[sl]['vnd'];
+      if (!rate) throw new Error('VND not found');
+      return rate;
+    }
+
+    try {
+      liveRate = await tryFetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies');
+    } catch {
+      try {
+        liveRate = await tryFetch('https://latest.currency-api.pages.dev/v1/currencies');
+      } catch {
+        badgeRate.textContent = 'Failed – check connection';
+        rateBadge.className   = 'rate-badge error';
+        return;
+      }
+    }
+
+    badgeRate.textContent = '1 ' + src + ' = ₫ ' + formatVND(liveRate);
+    rateBadge.className   = 'rate-badge';
+    badgeTime.textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    convert();
+  }
+
+  fromCurrency.addEventListener('change', () => { setDirection(direction); fetchRate(); });
+  amountInput.addEventListener('input', convert);
+
+  fetchRate();
+</script>
+</body>
+</html>
