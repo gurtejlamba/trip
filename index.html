@@ -343,7 +343,7 @@
 
     if (direction === 'toVND') {
       const raw      = amount * liveRate;
-      const buffered = raw * (1 - BUFFER);
+      const buffered = raw * (1 + BUFFER);
       const deducted = raw - buffered;
       resultAmount.textContent = '₫ ' + formatVND(buffered);
       breakdown.innerHTML =
